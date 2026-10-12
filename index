@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geschiedenis Examenvaardigheden Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .font-history {
+            font-family: 'Cinzel', serif;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fde047 0%, #eab308 50%, #ca8a04 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-border {
+            border-color: rgba(234, 179, 8, 0.4);
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.6); }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes float-badge {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float {
+            animation: float-badge 3s ease-in-out infinite;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen p-3 md:p-6 custom-scrollbar">
+
+    <div class="max-w-4xl mx-auto w-full flex-grow flex flex-col justify-between">
+        
+        <!-- Header & Stats Bar -->
+        <header class="glass-card rounded-2xl p-4 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-2xl font-bold">
+                        <i class="fa-solid fa-landmark"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-history text-lg md:text-xl font-bold gold-gradient-text tracking-wide">Clio Master</h1>
+                        <p class="text-xs text-slate-400">Geschiedenis Examenvaardigheden</p>
+                    </div>
+                </div>
+
+                <!-- Live Score & Combo Stats -->
+                <div class="flex items-center gap-3 bg-slate-900/60 p-2 md:p-3 rounded-xl border border-slate-700/50">
+                    <div class="text-center px-2">
+                        <span class="block text-[10px] uppercase text-slate-400 font-semibold">Punten</span>
+                        <span id="score-display" class="text-lg md:text-xl font-extrabold text-amber-400">0</span>
+                    </div>
+                    <div class="h-8 w-px bg-slate-700"></div>
+                    <div class="text-center px-2">
+                        <span class="block text-[10px] uppercase text-slate-400 font-semibold">Combo</span>
+                        <span id="combo-display" class="text-lg md:text-xl font-extrabold text-emerald-400">1x</span>
+                    </div>
+                    <div class="h-8 w-px bg-slate-700"></div>
+                    <button id="sound-btn" onclick="toggleSound()" class="p-2 text-slate-400 hover:text-amber-400 transition-colors" title="Geluid inschakelen/uitschakelen">
+                        <i id="sound-icon" class="fa-solid fa-volume-high text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-4">
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                    <span id="progress-text">Vraag 1 van 6</span>
+                    <span id="progress-percentage">0% Voltooid</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
+                    <div id="progress-bar" class="bg-gradient-to-r from-amber-500 to-emerald-400 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </header>
+
+        <main id="game-container" class="glass-card rounded-2xl p-5 md:p-8 flex-grow flex flex-col justify-between mb-6 transition-all duration-300">
+            
+            <!-- Question Content Section -->
+            <div id="question-block" class="space-y-6">
+                <!-- Skill Tag & Era Tag -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <span id="skill-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        <i class="fa-solid fa-brain mr-1"></i> Bronkritiek
+                    </span>
+                    <span id="era-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <i class="fa-solid fa-clock-rotate-left mr-1"></i> Tijdvak 8: Burgers en Stoom
+                    </span>
+                </div>
+
+                <!-- Source / Context Text or Image -->
+                <div id="source-box" class="bg-slate-900/80 border-l-4 border-amber-500 p-4 rounded-r-xl text-slate-300 text-sm md:text-base leading-relaxed italic relative">
+                    <i class="fa-solid fa-quote-left absolute top-2 right-3 text-slate-800 text-3xl opacity-50"></i>
+                    <p id="source-text">"Laden..."</p>
+                    <p id="source-author" class="mt-2 text-xs text-amber-400/80 font-semibold not-italic text-right">- Bronopgave</p>
+                </div>
+
+                <!-- Main Question Text -->
+                <h2 id="question-text" class="text-base md:text-lg font-bold text-slate-100 leading-snug">
+                    Vraag wordt geladen...
+                </h2>
+
+                <!-- Options Grid -->
+                <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                    <!-- Dynamic Answer Buttons -->
+                </div>
+            </div>
+
+            <!-- Explanation & Next Button Container -->
+            <div id="feedback-box" class="hidden mt-6 p-4 rounded-xl border transition-all duration-300">
+                <div class="flex items-start gap-3">
+                    <div id="feedback-icon" class="text-2xl mt-1"></div>
+                    <div class="flex-grow">
+                        <h4 id="feedback-title" class="font-bold text-base mb-1"></h4>
+                        <p id="feedback-explanation" class="text-sm text-slate-300 leading-relaxed"></p>
+                    </div>
+                </div>
+                <button id="next-btn" onclick="nextQuestion()" class="mt-4 w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2">
+                    <span>Volgende Vraag</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </main>
+
+        <!-- Minigame Overlay Container (Hidden by default) -->
+        <section id="minigame-container" class="hidden glass-card rounded-2xl p-5 md:p-8 flex-grow flex flex-col justify-between mb-6 border-2 border-amber-500/50 animate-pulse-glow">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-3 mb-4">
+                <div class="flex items-center gap-2 text-amber-400">
+                    <i id="minigame-icon" class="fa-solid fa-gamepad text-xl"></i>
+                    <h3 id="minigame-title" class="font-history text-lg font-bold tracking-wide">HISTORISCHE MINIGAME</h3>
+                </div>
+                <span class="bg-amber-500/20 text-amber-300 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-500/40">
+                    +<span id="minigame-reward-points">300</span> BONUS PUNTEN
+                </span>
+            </div>
+
+            <!-- Minigame Dynamic Interactive Area -->
+            <div id="minigame-body" class="flex-grow flex flex-col justify-center items-center py-4">
+                <!-- Content generated dynamically -->
+            </div>
+
+            <!-- Minigame Bottom Control / Result -->
+            <div id="minigame-footer" class="mt-4 text-center">
+                <p id="minigame-instruction" class="text-xs md:text-sm text-slate-400 mb-3"></p>
+                <button id="minigame-submit-btn" onclick="checkMinigameAnswer()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold rounded-xl shadow-lg transition-all">
+                    Controleer Antwoord
+                </button>
+            </div>
+        </section>
+
+        <!-- End Screen Overlay (Hidden by default) -->
+        <section id="end-screen" class="hidden glass-card rounded-2xl p-6 md:p-10 text-center mb-6">
+            <div class="w-20 h-20 mx-auto mb-4 bg-amber-500/20 rounded-full border-2 border-amber-400 flex items-center justify-center text-amber-400 text-4xl animate-float">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 class="font-history text-2xl md:text-3xl font-extrabold gold-gradient-text mb-2">Examen Voltooid!</h2>
+            <p class="text-slate-300 text-sm max-w-md mx-auto mb-6">Je hebt de toets voor examenvaardigheden en alle historische minigames afgerond!</p>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-lg mx-auto mb-8 text-left">
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
+                    <span class="block text-xs text-slate-400">Eindscore</span>
+                    <span id="final-score" class="text-2xl font-extrabold text-amber-400">0</span>
+                </div>
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
+                    <span class="block text-xs text-slate-400">Nauwkeurigheid</span>
+                    <span id="final-accuracy" class="text-2xl font-extrabold text-emerald-400">0%</span>
+                </div>
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center col-span-2 md:col-span-1">
+                    <span class="block text-xs text-slate-400">Minigames Gewonnen</span>
+                    <span id="final-minigames" class="text-2xl font-extrabold text-cyan-400">0/0</span>
+                </div>
+            </div>
+
+            <button onclick="restartGame()" class="px-8 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl transition-all shadow-xl">
+                <i class="fa-solid fa-rotate-right mr-2"></i> Opnieuw Spelen
+            </button>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-xs text-slate-500 py-2">
+             Geschiedenis Examenvaardigheden &amp; Mini-Games • Ontwikkeld voor eindexamentraining
+        </footer>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Audio Synthesizer (Web Audio API)
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.25); // G5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.3);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'minigame-win') {
+                // Happy fanfare
+                [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.15, now + idx * 0.08);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.2);
+                    o.start(now + idx * 0.08);
+                    o.stop(now + idx * 0.08 + 0.2);
+                });
+            } else if (type === 'click') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-lg';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-lg text-slate-600';
+            }
+        }
+
+        // Questions Database with Exam Skills
+        const examQuestions = [
+            {
+                id: 1,
+                skill: "Bronkritiek (Betrouwbaarheid)",
+                era: "Tijdvak 5: Ontdekkers en Hervormers",
+                source: "Een brief van de Spaanse koning Filips II uit 1568 gericht aan zijn landvoogdes in de Nederlanden, waarin hij beveelt streng op te treden tegen protestantse ketters.",
+                author: "Koninklijk Archief Simancas",
+                question: "Een historicus onderzoekt hoe de Spaanse kroon dacht over de godsdienstvrijheid in de Nederlanden. Is deze bron hiervoor betrouwbaar?",
+                options: [
+                    { text: "Ja, want het is een primaire bron uit de hand van de besluitvormer zelf.", correct: true },
+                    { text: "Nee, want Spaanse koningen overdreven altijd hun macht in brieven.", correct: false },
+                    { text: "Nee, want het is een secundaire bron die later is geschreven.", correct: false },
+                    { text: "Ja, maar alleen als de brief gepubliceerd is in een modern schoolboek.", correct: false }
+                ],
+                explanation: "Correct! Omdat de historicus de opvattingen van de Spaanse kroon onderzoekt, is een vertrouwelijke brief van koning Filips II een zeer betrouwbare primaire bron voor dát specifieke onderzoeksvraagstuk."
+            },
+            {
+                id: 2,
+                skill: "Oorzaak & Gevolg (Aanleiding)",
+                era: "Tijdvak 9: Wereldoorlogen",
+                source: "Op 28 juni 1914 worden aartshertog Franz Ferdinand en zijn vrouw in Sarajevo doodgeschoten door Gavrilo Princip.",
+                author: "Historisch Overzicht Eerste Wereldoorlog",
+                question: "Hoe wordt deze gebeurtenis in de geschiedschrijving beschouwd met betrekking tot het uitbreken van de Eerste Wereldoorlog?",
+                options: [
+                    { text: "Als de diepere structurele oorzaak van de oorlog.", correct: false },
+                    { text: "Als de directe aanleiding (de vonk in het kruitvat).", correct: true },
+                    { text: "Als een onbelangrijk incident dat losstond van de oorlog.", correct: false },
+                    { text: "Als het directe gevolg van het Verdrag van Versailles.", correct: false }
+                ],
+                explanation: "Klopt! De moord op Franz Ferdinand was de 'aanleiding' (het incident dat het proces ontketende), terwijl het militarisme, de bondgenootschappen en het imperialisme de 'diepere oorzaken' waren."
+            },
+            {
+                id: 3,
+                skill: "Standplaatsgebondenheid",
+                era: "Tijdvak 6: Regenten en Vorsten",
+                source: "Een 17e-eeuws dagboek van een VOC-koopman waarin hij de lokale bevolking op Banda beschrijft als 'ongehoorzaam en onbeschaafd'.",
+                author: "VOC Scheepsjournaal 1621",
+                question: "Welke examenvaardigheid moet je toepassen om dit citaat historisch juist te interpreteren?",
+                options: [
+                    { text: "Anachronisme inschakelen om de koopman te veroordelen met moderne wetten.", correct: false },
+                    { text: "Standplaatsgebondenheid: begrijpen dat zijn oordeel werd gevormd door 17e-eeuwse Europese normen en waarden.", correct: true },
+                    { text: "De bron negeren omdat alle 17e-eeuwse bronnen per definitie onjuist zijn.", correct: false },
+                    { text: "Aannemen dat de koopman een volledig objectief beeld geeft van de inwoners.", correct: false }
+                ],
+                explanation: "Uitstekend! Standplaatsgebondenheid houdt in dat iemands oordeel wordt beïnvloed door de tijd, cultuur, religie en maatschappelijke positie waarin diegene leefde."
+            },
+            {
+                id: 4,
+                skill: "Continuïteit & Verandering",
+                era: "Tijdvak 8: Burgers en Stoom",
+                source: "Tijdens de Industriële Revolutie vervingen stoommachines in fabrieken geleidelijk het ambachtelijke handwerk in werkplaatsen.",
+                author: "Sociaal-Economische Geschiedenis",
+                question: "Wat is bij deze overgang een belangrijk element van verandering én een element van continuïteit?",
+                options: [
+                    { text: "Verandering: productiesnelheid steeg enorm. Continuïteit: er bleef behoefte aan grondstoffen en arbeid.", correct: true },
+                    { text: "Verandering: geld afgeschaft. Continuïteit: fabriekseigenaren werden armer.", correct: false },
+                    { text: "Verandering: landbouw verdween volledig. Continuïteit: alle spullen bleven handgemaakt.", correct: false },
+                    { text: "Verandering: iedereen werd gelijk. Continuïteit: er waren geen machines meer.", correct: false }
+                ],
+                explanation: "Helemaal juist! De productiewijze veranderde drastisch door mechanisatie, maar de fundamentele economische behoefte aan grondstoffen en menselijke arbeid bleef bestaan (continuïteit)."
+            },
+            {
+                id: 5,
+                skill: "Representativiteit",
+                era: "Tijdvak 7: Pruiken en Revoluties",
+                source: "Een petitie opgesteld door 20 rijkste kooplieden uit Parijs in 1788 waarin zij vragen om lagere belasting voor de handel.",
+                author: "Franse Archieven 1788",
+                question: "Is deze bron representatief voor de eisen van de gehele Derde Stand aan de vooravond van de Franse Revolutie?",
+                options: [
+                    { text: "Ja, want kooplieden vertegenwoordigden alle arme boeren en arbeiders.", correct: false },
+                    { text: "Nee, want de rijkste burgers hadden heel andere belangen dan de verarmde boeren op het platteland.", correct: true },
+                    { text: "Ja, want het Franse volk dacht in 1788 precies hetzelfde over belasting.", correct: false },
+                    { text: "Nee, want een petitie is nooit een geschreven bron.", correct: false }
+                ],
+                explanation: "Perfect! Een kleine rijke elite van de Derde Stand is niet representatief voor de miljoenen arme boeren en dagloners die honger leden."
+            }
+        ];
+
+        // History Mini-games list interspersed between questions
+        const miniGamesList = [
+            {
+                type: 'chronology',
+                title: 'CHRONOLOGIE CHALLENGE',
+                icon: 'fa-arrow-down-short-wide',
+                reward: 300,
+                instruction: 'Klik op de gebeurtenissen in de JUISTE chronologische volgorde (van OUD naar NIEUW):',
+                items: [
+                    { id: 'c1', label: 'Bouw van het Colosseum in Rome', year: 80 },
+                    { id: 'c2', label: 'Beeldenstorm in de Nederlanden', year: 1566 },
+                    { id: 'c3', label: 'Oprichting van de VOC', year: 1602 },
+                    { id: 'c4', label: 'Val van de Berlijnse Muur', year: 1989 }
+                ]
+            },
+            {
+                type: 'anachronism',
+                title: 'ANACHRONISME SPOTTER',
+                icon: 'fa-magnifying-glass',
+                reward: 350,
+                instruction: 'Welk element hoort ABSOLUUT NIET thuis in de geschilderde veldslag van Napoleon (1815)?',
+                eraText: 'Slag bij Waterloo (1815) - Tijdvak 7/8',
+                options: [
+                    { text: 'Kanonnen met kruit', isAnachronism: false },
+                    { text: 'Een soldaat met een mobiele smartphone', isAnachronism: true },
+                    { text: 'Paarden met cavalerie-officieren', isAnachronism: false },
+                    { text: 'Papieren kaarten van het terrein', isAnachronism: false }
+                ]
+            },
+            {
+                type: 'source-blitz',
+                title: 'BRON BLITZ: PRIMAIR OF SECUNDAIR?',
+                icon: 'fa-bolt',
+                reward: 400,
+                instruction: 'Bepaal of onderstaande historische bron PRIMAIR of SECUNDAIR is:',
+                sourceItem: 'Een dagboekpagina geschreven door een soldaat in de loopgraven tijdens de Slag bij de Somme in 1916.',
+                correctCategory: 'primair', // 'primair' or 'secundair'
+                explanation: 'Een dagboek van een directe ooggetuige uit die tijd is een PRIMAIRE bron!'
+            }
+        ];
+
+        // State Variables
+        let currentQuestionIdx = 0;
+        let score = 0;
+        let combo = 1;
+        let correctAnswersCount = 0;
+        let miniGamesWon = 0;
+        let totalMiniGamesPlayed = 0;
+        let activeMiniGame = null;
+        let selectedChronologyOrder = [];
+
+        // App Initialization
+        window.onload = function() {
+            loadQuestion(currentQuestionIdx);
+        };
+
+        function loadQuestion(idx) {
+            const q = examQuestions[idx];
+            
+            // Hide feedback & minigame, show question
+            document.getElementById('feedback-box').classList.add('hidden');
+            document.getElementById('minigame-container').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+
+            // Update Header & Progress
+            document.getElementById('progress-text').innerText = `Vraag ${idx + 1} van ${examQuestions.length}`;
+            const pct = Math.round((idx / examQuestions.length) * 100);
+            document.getElementById('progress-percentage').innerText = `${pct}% Voltooid`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+
+            // Update Badges & Text
+            document.getElementById('skill-badge').innerHTML = `<i class="fa-solid fa-brain mr-1"></i> ${q.skill}`;
+            document.getElementById('era-badge').innerHTML = `<i class="fa-solid fa-clock-rotate-left mr-1"></i> ${q.era}`;
+            document.getElementById('source-text').innerText = q.source;
+            document.getElementById('source-author').innerText = `- ${q.author}`;
+            document.getElementById('question-text').innerText = q.question;
+
+            // Render Options Buttons
+            const optionsGrid = document.getElementById('options-grid');
+            optionsGrid.innerHTML = '';
+
+            q.options.forEach((opt, oIdx) => {
+                const btn = document.createElement('button');
+                btn.className = `option-btn w-full text-left p-4 rounded-xl bg-slate-900/90 border border-slate-700/80 hover:border-amber-400/80 hover:bg-slate-800 transition-all duration-200 text-sm md:text-base text-slate-200 flex items-start gap-3 shadow-md`;
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-xs font-bold text-amber-400 shrink-0 mt-0.5">
+                        ${String.fromCharCode(65 + oIdx)}
+                    </span>
+                    <span class="flex-grow">${opt.text}</span>
+                `;
+                btn.onclick = () => selectOption(oIdx, btn);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function selectOption(selectedIdx, btnElement) {
+            playSound('click');
+            const q = examQuestions[currentQuestionIdx];
+            const isCorrect = q.options[selectedIdx].correct;
+
+            // Disable all option buttons
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackExp = document.getElementById('feedback-explanation');
+
+            feedbackBox.classList.remove('hidden', 'bg-emerald-950/40', 'border-emerald-500/40', 'bg-rose-950/40', 'border-rose-500/40');
+
+            if (isCorrect) {
+                playSound('correct');
+                correctAnswersCount++;
+                const addedPoints = 200 * combo;
+                score += addedPoints;
+                combo += 1;
+
+                btnElement.classList.add('bg-emerald-900/50', 'border-emerald-400', 'text-emerald-200');
+                feedbackBox.classList.add('bg-emerald-950/40', 'border-emerald-500/40');
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i>`;
+                feedbackTitle.className = "font-bold text-base mb-1 text-emerald-300";
+                feedbackTitle.innerText = `Uitstekend! (+${addedPoints} ptn)`;
+            } else {
+                playSound('wrong');
+                combo = 1; // Reset combo
+
+                btnElement.classList.add('bg-rose-900/50', 'border-rose-400', 'text-rose-200');
+                feedbackBox.classList.add('bg-rose-950/40', 'border-rose-500/40');
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400"></i>`;
+                feedbackTitle.className = "font-bold text-base mb-1 text-rose-300";
+                feedbackTitle.innerText = "Helaas, niet juist!";
+
+                // Highlight correct option
+                q.options.forEach((opt, idx) => {
+                    if (opt.correct) {
+                        allBtns[idx].classList.add('bg-emerald-900/30', 'border-emerald-500/50');
+                    }
+                });
+            }
+
+            // Update stats
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('combo-display').innerText = `${combo}x`;
+            feedbackExp.innerText = q.explanation;
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            currentQuestionIdx++;
+
+            // Check if we should trigger a mini-game (e.g. every 2 questions)
+            const minigameTriggerIdx = Math.floor(currentQuestionIdx / 2) - 1;
+            if (currentQuestionIdx < examQuestions.length && currentQuestionIdx % 2 === 0 && miniGamesList[minigameTriggerIdx]) {
+                launchMinigame(miniGamesList[minigameTriggerIdx]);
+            } else if (currentQuestionIdx < examQuestions.length) {
+                loadQuestion(currentQuestionIdx);
+            } else {
+                showEndScreen();
+            }
+        }
+
+        function launchMinigame(minigame) {
+            activeMiniGame = minigame;
+            totalMiniGamesPlayed++;
+
+            document.getElementById('game-container').classList.add('hidden');
+            const container = document.getElementById('minigame-container');
+            container.classList.remove('hidden');
+
+            document.getElementById('minigame-title').innerText = minigame.title;
+            document.getElementById('minigame-icon').className = `fa-solid ${minigame.icon} text-xl`;
+            document.getElementById('minigame-reward-points').innerText = minigame.reward;
+            document.getElementById('minigame-instruction').innerText = minigame.instruction;
+
+            const body = document.getElementById('minigame-body');
+            body.innerHTML = '';
+            document.getElementById('minigame-submit-btn').classList.remove('hidden');
+
+            if (minigame.type === 'chronology') {
+                renderChronologyGame(minigame, body);
+            } else if (minigame.type === 'anachronism') {
+                renderAnachronismGame(minigame, body);
+            } else if (minigame.type === 'source-blitz') {
+                renderSourceBlitzGame(minigame, body);
+            }
+        }
+
+        function renderChronologyGame(minigame, body) {
+            selectedChronologyOrder = [];
+            
+            // Shuffle items for initial state
+            const shuffled = [...minigame.items].sort(() => Math.random() - 0.5);
+
+            const grid = document.createElement('div');
+            grid.className = 'w-full max-w-xl space-y-3 my-2';
+            grid.id = 'chronology-items-list';
+
+            shuffled.forEach(item => {
+                const card = document.createElement('button');
+                card.id = `chrono-${item.id}`;
+                card.className = 'w-full p-3.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-400/70 text-left font-medium text-slate-200 flex items-center justify-between transition-all';
+                card.innerHTML = `
+                    <span><i class="fa-solid fa-hourglass-half text-amber-400/70 mr-2"></i>${item.label}</span>
+                    <span class="chrono-badge px-2.5 py-0.5 rounded-full text-xs bg-slate-800 text-slate-400 border border-slate-700">Selecteer</span>
+                `;
+                card.onclick = () => toggleChronologyItem(item, card);
+                grid.appendChild(card);
+            });
+
+            body.appendChild(grid);
+        }
+
+        function toggleChronologyItem(item, element) {
+            playSound('click');
+            const existingIdx = selectedChronologyOrder.findIndex(i => i.id === item.id);
+
+            if (existingIdx !== -1) {
+                // Remove
+                selectedChronologyOrder.splice(existingIdx, 1);
+            } else {
+                // Add
+                selectedChronologyOrder.push(item);
+            }
+
+            // Refresh Badges
+            activeMiniGame.items.forEach(i => {
+                const card = document.getElementById(`chrono-${i.id}`);
+                const badge = card.querySelector('.chrono-badge');
+                const idx = selectedChronologyOrder.findIndex(sel => sel.id === i.id);
+
+                if (idx !== -1) {
+                    card.classList.add('border-amber-400', 'bg-amber-950/20');
+                    badge.className = 'chrono-badge px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-slate-950';
+                    badge.innerText = `Stap ${idx + 1}`;
+                } else {
+                    card.classList.remove('border-amber-400', 'bg-amber-950/20');
+                    badge.className = 'chrono-badge px-2.5 py-0.5 rounded-full text-xs bg-slate-800 text-slate-400 border border-slate-700';
+                    badge.innerText = 'Selecteer';
+                }
+            });
+        }
+
+        function renderAnachronismGame(minigame, body) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'w-full max-w-lg text-center space-y-4';
+
+            const eraTag = document.createElement('div');
+            eraTag.className = 'inline-block px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full text-xs font-semibold border border-amber-500/30 mb-2';
+            eraTag.innerHTML = `<i class="fa-solid fa-calendar-day mr-1"></i> ${minigame.eraText}`;
+            wrapper.appendChild(eraTag);
+
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
+
+            minigame.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'anachronism-opt p-4 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-400 text-slate-200 text-sm font-semibold transition-all flex items-center gap-3 text-left';
+                btn.innerHTML = `<span class="w-7 h-7 rounded-lg bg-slate-800 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">${idx+1}</span> <span>${opt.text}</span>`;
+                btn.onclick = () => {
+                    playSound('click');
+                    document.querySelectorAll('.anachronism-opt').forEach(b => b.classList.remove('border-amber-400', 'bg-amber-950/30'));
+                    btn.classList.add('border-amber-400', 'bg-amber-950/30');
+                    btn.dataset.selected = "true";
+                };
+                grid.appendChild(btn);
+            });
+
+            wrapper.appendChild(grid);
+            body.appendChild(wrapper);
+        }
+
+        function renderSourceBlitzGame(minigame, body) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'w-full max-w-lg text-center space-y-5';
+
+            const card = document.createElement('div');
+            card.className = 'bg-slate-900 p-5 rounded-2xl border border-slate-700 text-slate-200 text-sm md:text-base italic shadow-inner';
+            card.innerHTML = `<i class="fa-solid fa-file-lines text-amber-400 text-2xl mb-2 block not-italic"></i> "${minigame.sourceItem}"`;
+            wrapper.appendChild(card);
+
+            const btnGrid = document.createElement('div');
+            btnGrid.className = 'grid grid-cols-2 gap-4';
+
+            const btnPrimary = document.createElement('button');
+            btnPrimary.className = 'blitz-opt py-4 px-3 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded-xl font-bold text-amber-300 transition-all flex flex-col items-center gap-1';
+            btnPrimary.innerHTML = `<i class="fa-solid fa-eye text-lg"></i> <span>Primaire Bron</span>`;
+            btnPrimary.onclick = () => selectBlitzCategory('primair', btnPrimary);
+
+            const btnSecondary = document.createElement('button');
+            btnSecondary.className = 'blitz-opt py-4 px-3 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded-xl font-bold text-indigo-300 transition-all flex flex-col items-center gap-1';
+            btnSecondary.innerHTML = `<i class="fa-solid fa-book-open text-lg"></i> <span>Secundaire Bron</span>`;
+            btnSecondary.onclick = () => selectBlitzCategory('secundair', btnSecondary);
+
+            btnGrid.appendChild(btnPrimary);
+            btnGrid.appendChild(btnSecondary);
+            wrapper.appendChild(btnGrid);
+            body.appendChild(wrapper);
+        }
+
+        function selectBlitzCategory(cat, btn) {
+            playSound('click');
+            document.querySelectorAll('.blitz-opt').forEach(b => b.classList.remove('border-amber-400', 'bg-slate-800'));
+            btn.classList.add('border-amber-400', 'bg-slate-800');
+            btn.dataset.category = cat;
+        }
+
+        function checkMinigameAnswer() {
+            let isWin = false;
+            let feedbackText = "";
+
+            if (activeMiniGame.type === 'chronology') {
+                if (selectedChronologyOrder.length !== activeMiniGame.items.length) {
+                    playSound('wrong');
+                    document.getElementById('minigame-instruction').innerText = "Selecteer eerst ALLE gebeurtenissen!";
+                    return;
+                }
+                
+                // Check if sorted by year ascending
+                const isCorrectOrder = selectedChronologyOrder.every((item, idx) => {
+                    if (idx === 0) return true;
+                    return item.year >= selectedChronologyOrder[idx - 1].year;
+                });
+
+                if (isCorrectOrder) {
+                    isWin = true;
+                    feedbackText = "Gefeliciteerd! Alle gebeurtenissen staan in de juiste chronologische volgorde.";
+                } else {
+                    feedbackText = "Helaas, de chronologische volgorde klopte niet helemaal.";
+                }
+            } else if (activeMiniGame.type === 'anachronism') {
+                const selectedBtn = Array.from(document.querySelectorAll('.anachronism-opt')).find(b => b.dataset.selected === "true");
+                if (!selectedBtn) {
+                    playSound('wrong');
+                    document.getElementById('minigame-instruction').innerText = "Kies eerst een optie!";
+                    return;
+                }
+                const selectedText = selectedBtn.querySelector('span:last-child').innerText;
+                const target = activeMiniGame.options.find(o => o.text === selectedText);
+
+                if (target && target.isAnachronism) {
+                    isWin = true;
+                    feedbackText = "Scherp opgemerkt! Een smartphone hoort uiteraard niet thuis in 1815!";
+                } else {
+                    feedbackText = "Helaas, dat element kon wel degelijk voorkomen in die tijd.";
+                }
+            } else if (activeMiniGame.type === 'source-blitz') {
+                const selectedBtn = Array.from(document.querySelectorAll('.blitz-opt')).find(b => b.dataset.category);
+                if (!selectedBtn) {
+                    playSound('wrong');
+                    document.getElementById('minigame-instruction').innerText = "Kies Primair of Secundair!";
+                    return;
+                }
+                if (selectedBtn.dataset.category === activeMiniGame.correctCategory) {
+                    isWin = true;
+                    feedbackText = activeMiniGame.explanation;
+                } else {
+                    feedbackText = "Helaas, niet de juiste broncategorie.";
+                }
+            }
+
+            // Hide submit button
+            document.getElementById('minigame-submit-btn').classList.add('hidden');
+
+            if (isWin) {
+                playSound('minigame-win');
+                miniGamesWon++;
+                score += activeMiniGame.reward;
+                document.getElementById('score-display').innerText = score;
+
+                document.getElementById('minigame-instruction').innerHTML = `
+                    <div class="p-3 bg-emerald-950/60 border border-emerald-500/50 rounded-xl text-emerald-300 font-bold mb-3">
+                        <i class="fa-solid fa-trophy mr-1"></i> GEWONNEN! +${activeMiniGame.reward} PUNTEN!
+                        <p class="text-xs font-normal text-slate-300 mt-1">${feedbackText}</p>
+                    </div>
+                `;
+            } else {
+                playSound('wrong');
+                document.getElementById('minigame-instruction').innerHTML = `
+                    <div class="p-3 bg-rose-950/60 border border-rose-500/50 rounded-xl text-rose-300 font-bold mb-3">
+                        <i class="fa-solid fa-circle-xmark mr-1"></i> NIET GELUKT!
+                        <p class="text-xs font-normal text-slate-300 mt-1">${feedbackText}</p>
+                    </div>
+                `;
+            }
+
+            // Add button to resume exam
+            const continueBtn = document.createElement('button');
+            continueBtn.className = 'w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg transition-all mt-2';
+            continueBtn.innerText = 'Verder met Examenvragen';
+            continueBtn.onclick = () => {
+                playSound('click');
+                loadQuestion(currentQuestionIdx);
+            };
+            document.getElementById('minigame-body').appendChild(continueBtn);
+        }
+
+        function showEndScreen() {
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('minigame-container').classList.add('hidden');
+            const endScreen = document.getElementById('end-screen');
+            endScreen.classList.remove('hidden');
+
+            const accuracy = Math.round((correctAnswersCount / examQuestions.length) * 100);
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-accuracy').innerText = `${accuracy}%`;
+            document.getElementById('final-minigames').innerText = `${miniGamesWon}/${totalMiniGamesPlayed}`;
+
+            playSound('minigame-win');
+        }
+
+        function restartGame() {
+            playSound('click');
+            currentQuestionIdx = 0;
+            score = 0;
+            combo = 1;
+            correctAnswersCount = 0;
+            miniGamesWon = 0;
+            totalMiniGamesPlayed = 0;
+
+            document.getElementById('score-display').innerText = '0';
+            document.getElementById('combo-display').innerText = '1x';
+            document.getElementById('end-screen').classList.add('hidden');
+
+            loadQuestion(0);
+        }
+    </script>
+</body>
+</html>
